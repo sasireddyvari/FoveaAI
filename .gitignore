@@ -1,0 +1,11 @@
+.venv/
+venv/
+.env
+.env.*
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.pytest_cache/
+data/raw/IDRiD/
+instance/*.db

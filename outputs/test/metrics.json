@@ -1,0 +1,36 @@
+{
+  "split": "test",
+  "threshold": 0.7890508770942688,
+  "threshold_source": "validation_youden_j",
+  "n": 103,
+  "accuracy": 0.7864077669902912,
+  "precision": 0.828125,
+  "sensitivity_recall": 0.828125,
+  "specificity": 0.717948717948718,
+  "f1": 0.828125,
+  "roc_auc": 0.8453525641025641,
+  "tn": 28,
+  "fp": 11,
+  "fn": 11,
+  "tp": 53,
+  "model": {
+    "architecture": "resnet18",
+    "image_size": 224,
+    "best_epoch": 4,
+    "best_val_auc": 0.9888517279821628,
+    "positive_class_weight": 0.5954545454545455,
+    "weights_initialization": "imagenet"
+  },
+  "validation_threshold_metrics": {
+    "threshold": 0.7890508770942688,
+    "accuracy": 0.9838709677419355,
+    "precision": 1.0,
+    "sensitivity": 0.9743589743589743,
+    "specificity": 1.0,
+    "f1": 0.987012987012987,
+    "tn": 23,
+    "fp": 0,
+    "fn": 1,
+    "tp": 38
+  }
+}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block page_title %}Model Performance{% endblock %}
+{% block content %}
+{% set m = dashboard.metrics %}
+{% if not m %}
+<div class="alert error">Metrics unavailable. Run <code>python -m src.evaluate</code>.</div>
+{% else %}
+<section class="metrics-kpis compact-kpis">
+    <div class="kpi-card"><span>ROC-AUC</span><strong>{{ "%.1f"|format(m.roc_auc * 100) }}%</strong></div>
+    <div class="kpi-card accent"><span>Sensitivity</span><strong>{{ "%.1f"|format(m.sensitivity_recall * 100) }}%</strong><small>{{ m.tp }} TP · {{ m.fn }} FN</small></div>
+    <div class="kpi-card"><span>Specificity</span><strong>{{ "%.1f"|format(m.specificity * 100) }}%</strong><small>{{ m.tn }} TN · {{ m.fp }} FP</small></div>
+    <div class="kpi-card"><span>F1</span><strong>{{ "%.1f"|format(m.f1 * 100) }}%</strong></div>
+    <div class="kpi-card"><span>Accuracy</span><strong>{{ "%.1f"|format(m.accuracy * 100) }}%</strong><small>{{ m.n }} test images</small></div>
+    <div class="kpi-card"><span>Precision</span><strong>{{ "%.1f"|format(m.precision * 100) }}%</strong></div>
+</section>
+
+<section class="visual-grid metrics-visual-grid">
+    <div class="panel chart-panel"><div class="panel-heading"><h2>ROC Curve</h2></div>{% if dashboard.artifacts.roc %}<img src="{{ url_for('artifact', name='roc') }}" alt="ROC">{% else %}<div class="artifact-missing">Unavailable</div>{% endif %}</div>
+    <div class="panel chart-panel"><div class="panel-heading"><h2>Confusion Matrix</h2></div>{% if dashboard.artifacts.confusion %}<img src="{{ url_for('artifact', name='confusion') }}" alt="Confusion matrix">{% else %}<div class="artifact-missing">Unavailable</div>{% endif %}</div>
+    <div class="panel chart-panel"><div class="panel-heading"><h2>Training AUC</h2></div>{% if dashboard.artifacts.training %}<img src="{{ url_for('artifact', name='training') }}" alt="Training AUC">{% else %}<div class="artifact-missing">Unavailable</div>{% endif %}</div>
+    <div class="panel chart-panel"><div class="panel-heading"><h2>Precision–Recall</h2></div>{% if dashboard.artifacts.pr %}<img src="{{ url_for('artifact', name='pr') }}" alt="Precision recall">{% else %}<div class="artifact-missing">Unavailable</div>{% endif %}</div>
+
+    <div class="panel compact-info-panel">
+        <div class="panel-heading"><h2>Model</h2></div>
+        {% if dashboard.model %}
+        <div class="model-stat-grid">
+            <div><span>Architecture</span><strong>{{ dashboard.model.architecture }}</strong></div>
+            <div><span>Input</span><strong>{{ dashboard.model.image_size }} × {{ dashboard.model.image_size }}</strong></div>
+            <div><span>Threshold</span><strong>{{ "%.3f"|format(dashboard.model.threshold) }}</strong></div>
+            <div><span>Best epoch</span><strong>{{ dashboard.model.best_epoch or '—' }}</strong></div>
+            <div><span>Validation AUC</span><strong>{% if dashboard.model.best_val_auc %}{{ "%.4f"|format(dashboard.model.best_val_auc) }}{% else %}—{% endif %}</strong></div>
+            <div><span>Initialization</span><strong>{{ dashboard.model.weights_initialization or '—' }}</strong></div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if dashboard.dataset %}
+<section class="panel dataset-panel-clean">
+    <div class="panel-heading"><h2>IDRiD Dataset</h2></div>
+    <div class="dataset-topline">
+        <div><strong>{{ dashboard.dataset.total }}</strong><span>Total</span></div>
+        <div><strong>{{ dashboard.dataset.train }}</strong><span>Train</span></div>
+        <div><strong>{{ dashboard.dataset.val }}</strong><span>Validation</span></div>
+        <div><strong>{{ dashboard.dataset.test }}</strong><span>Test</span></div>
+    </div>
+    <div class="grade-grid-clean">
+        {% for split_name in ['train', 'val', 'test'] %}
+        <div class="grade-group">
+            <strong>{{ 'Validation' if split_name == 'val' else split_name|title }}</strong>
+            <div class="grade-mini-row">
+                {% for grade in range(5) %}
+                    {% set ns = namespace(count=0) %}
+                    {% for row in dashboard.dataset.grades %}
+                        {% if row.split == split_name and row.dr_grade == grade %}{% set ns.count = row.count %}{% endif %}
+                    {% endfor %}
+                    <div><span>G{{ grade }}</span><b>{{ ns.count }}</b></div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

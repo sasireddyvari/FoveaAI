@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block page_title %}Prediction{% endblock %}
+{% block content %}
+<section class="status-strip compact-status">
+    <div><span class="status-dot {{ 'ok' if model_ready else 'bad' }}"></span><strong>{{ 'Ready' if model_ready else 'Unavailable' }}</strong><small>{{ settings.model_path.name }}</small></div>
+    <div><span>Decision threshold</span><strong>{{ "%.1f"|format((result.threshold if result else current_threshold) * 100) }}%</strong></div>
+    <div><span>Grad-CAM</span><strong>{{ 'On' if settings.enable_gradcam else 'Off' }}</strong></div>
+    <div><span>Image storage</span><strong>Not retained</strong></div>
+</section>
+
+{% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+
+<section class="prediction-grid">
+    <div class="panel upload-panel">
+        <div class="panel-heading"><h2>Fundus Image</h2></div>
+        <form method="post" enctype="multipart/form-data" id="predictionForm">
+            <label class="drop-zone" id="dropZone">
+                <input id="imageInput" type="file" name="image" accept=".jpg,.jpeg,.png,.tif,.tiff" required>
+                <img id="clientPreview" class="client-preview hidden" alt="Selected image">
+                <div id="dropPrompt">
+                    <div class="upload-icon">↥</div>
+                    <strong>Drop or select image</strong>
+                    <span>JPG · PNG · TIFF · {{ settings.max_upload_mb }} MB max</span>
+                </div>
+            </label>
+            <button id="analyzeButton" class="primary-button" type="submit"><span>Analyze</span><span>→</span></button>
+        </form>
+    </div>
+
+    <div class="panel result-panel">
+        <div class="panel-heading"><h2>Prediction</h2></div>
+        {% if result %}
+        <div class="result-hero clean-result-hero">
+            <div><div class="prediction-label">{{ result.label }}</div></div>
+            <div class="score-ring" style="--score: {{ result.probability_percent }}%"><span>{{ "%.1f"|format(result.probability_percent) }}%</span><small>P(referable)</small></div>
+        </div>
+        <div class="probability-scale">
+            <div class="scale-track"><div class="scale-fill" style="width: {{ result.probability_percent }}%"></div><div class="threshold-marker" style="left: {{ result.threshold_percent }}%"><span>{{ "%.1f"|format(result.threshold_percent) }}%</span></div></div>
+            <div class="scale-labels"><span>Non-referable</span><span>Referable</span></div>
+        </div>
+        <div class="mini-kpis">
+            <div><span>Threshold</span><strong>{{ "%.1f"|format(result.threshold_percent) }}%</strong></div>
+            <div><span>Decision margin</span><strong>{{ result.decision_margin_text }}</strong></div>
+            <div><span>Latency</span><strong>{{ "%.0f"|format(result.latency_ms) }} ms</strong></div>
+            <div><span>Device</span><strong>{{ result.device }}</strong></div>
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="empty-visual">◎</div><strong>No result</strong></div>
+        {% endif %}
+    </div>
+</section>
+
+{% if result %}
+<section class="explain-grid">
+    <div class="panel">
+        <div class="panel-heading"><h2>Grad-CAM</h2></div>
+        <div class="image-compare">
+            <figure><img src="{{ result.preview_uri }}" alt="Original retinal fundus image"><figcaption>Original</figcaption></figure>
+            <figure>{% if result.gradcam_uri %}<img src="{{ result.gradcam_uri }}" alt="Grad-CAM attention overlay">{% else %}<div class="artifact-missing">Unavailable</div>{% endif %}<figcaption>Attention overlay</figcaption></figure>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading"><h2>Technical QC</h2><span class="status-badge {{ 'good' if result.quality.technical_status == 'Pass' else 'warn' }}">{{ result.quality.technical_status }}</span></div>
+        <div class="quality-grid">
+            <div><span>Resolution</span><strong>{{ result.quality.width }} × {{ result.quality.height }}</strong></div>
+            <div><span>Sharpness</span><strong>{{ result.quality.sharpness }}</strong></div>
+            <div><span>Brightness</span><strong>{{ result.quality.brightness }}</strong></div>
+            <div><span>Contrast</span><strong>{{ result.quality.contrast }}</strong></div>
+            <div><span>Visible field</span><strong>{{ result.quality.field_coverage }}%</strong></div>
+        </div>
+        {% if result.quality.flags %}<div class="flag-list">{% for flag in result.quality.flags %}<span>⚠ {{ flag }}</span>{% endfor %}</div>{% endif %}
+    </div>
+</section>
+{% endif %}
+
+{% if recent %}
+<section class="panel recent-panel">
+    <div class="panel-heading"><h2>Recent Analyses</h2><span class="status-badge">Metadata only · UTC</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Token</th><th>Prediction</th><th>P(Referable)</th><th>Threshold</th><th>Quality</th><th>Latency</th></tr></thead><tbody>
+    {% for row in recent %}<tr><td>{{ row.event_ts[:19].replace('T',' ') }}</td><td><code>{{ row.source_token }}</code></td><td>{{ row.prediction }}</td><td>{{ "%.1f"|format(row.probability * 100) }}%</td><td>{{ "%.1f"|format(row.threshold * 100) }}%</td><td>{{ row.technical_status }}</td><td>{{ "%.0f"|format(row.latency_ms) }} ms</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

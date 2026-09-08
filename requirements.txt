@@ -1,0 +1,11 @@
+torch>=2.4
+torchvision>=0.19
+Flask>=3.0
+python-dotenv>=1.0
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+Pillow>=10.4
+matplotlib>=3.9
+opencv-python-headless>=4.10
+gunicorn>=23.0

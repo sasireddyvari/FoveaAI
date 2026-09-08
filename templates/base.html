@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ settings.app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">F</div>
+            <div><strong>FoveaAI</strong></div>
+        </div>
+        <nav>
+            <a class="nav-item {{ 'active' if active == 'prediction' else '' }}" href="{{ url_for('prediction_view') }}"><span>◉</span> Prediction</a>
+            <a class="nav-item {{ 'active' if active == 'metrics' else '' }}" href="{{ url_for('metrics_view') }}"><span>▥</span> Performance</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h1>{% block page_title %}{% endblock %}</h1>
+            <div class="top-actions">
+                <span class="pill">ResNet18</span>
+                <span class="pill">IDRiD</span>
+            </div>
+        </header>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

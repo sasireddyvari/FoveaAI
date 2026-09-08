@@ -1,0 +1,10 @@
+python3.11 -m venv .venv
+source .venv/bin/activate
+python --version
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python scripts/check_setup.py
+python scripts/prepare_idrid.py
+python -m src.train
+python -m src.evaluate
+python app.py
